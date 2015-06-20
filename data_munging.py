@@ -22,6 +22,7 @@ def duration2sec(duration):
 	if isNaN(duration):
 		return -1.
 	sec = 0.
+	duration_regex = "P(([0-9]+)D)?T(([0-9]+)H)?(([0-9]+)M)?(([0-9]+)S)?"
 	match = re.findall(duration_regex, duration)
 	if len(match) != 1 or len(match[0]) != 8:
 		print "Error: {}", duration
@@ -118,7 +119,7 @@ def features_transforming(df):
 	df['duration'] = df.apply(convert_duration, axis=1)
 	df['caption'] = df.apply(convert_caption, axis=1)
 	df['licensedContent'] = df.apply(convert_licensedContent, axis=1)
-	df['topicIds'] = df.apply(convert_TopicIds, axis=1)
+	df['topicIds'] = df.apply(convert_topicIds, axis=1)
 	df['relevantTopicIds'] = df.apply(convert_relevantTopicIds, axis=1)
 	df['published_at'] = df.apply(convert_published_at, axis=1)
 	# add
@@ -145,23 +146,30 @@ def features_transforming(df):
 # Main
 ####################################################################################################################################
 
+
+
 folder = os.getcwd() ; print folder
 
 t0 = time.time()
 
+# train_sample.csv
+
 train_df = pd.read_csv('./data/train_sample.csv', header=0, escapechar='\\', quotechar='"')
 print "Reading train_sample.csv : {}", (time.time() - t0)
-test_df = pd.read_csv('./data/test_sample.csv', header=0, escapechar='\\', quotechar='"')
-print "Reading test_sample.csv : {}", (time.time() - t0)
-
-duration_regex = "P(([0-9]+)D)?T(([0-9]+)H)?(([0-9]+)M)?(([0-9]+)S)?"
 
 features_transforming(train_df)
 print "features_transforming(train_df) : {}", (time.time() - t0)
+
+train_df.to_csv('./data_munging/train_sample.csv', sep=',', index=None)
+
+# test_sample.csv
+
+test_df = pd.read_csv('./data/test_sample.csv', header=0, escapechar='\\', quotechar='"')
+print "Reading test_sample.csv : {}", (time.time() - t0)
+
 features_transforming(test_df)
 print "features_transforming(test_df) : {}", (time.time() - t0)
 
-train_df.to_csv('./data_munging/train_sample.csv', sep=',', index=None)
 test_df.to_csv('./data_munging/test_sample.csv', sep=',', index=None)
 
 
