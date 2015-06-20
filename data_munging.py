@@ -7,6 +7,10 @@ import time
 import os
 import datetime
 from dateutil import parser
+import csv
+
+from unidecode import unidecode
+from nltk import PorterStemmer
 
 ####################################################################################################################################
 # Functions
@@ -25,7 +29,7 @@ def duration2sec(duration):
 	duration_regex = "P(([0-9]+)D)?T(([0-9]+)H)?(([0-9]+)M)?(([0-9]+)S)?"
 	match = re.findall(duration_regex, duration)
 	if len(match) != 1 or len(match[0]) != 8:
-		print "Error: {}", duration
+		print "Error: ", duration
 		return -1.
 	match = match[0]
 	if match[1]: # day
@@ -80,6 +84,11 @@ def convert_published_at(df):
     else:
     	return datetime.datetime.now()
 
+def convertion_description_url(df):
+	url_regex = r'(https?:\/\/)?([a-zA-Z0-9]+\.)?([a-zA-Z0-9]+)\.[a-zA-Z0-9]+\/?([\"\'\=a-zA-Z0-9\/\?\_\-]+)?'
+	string = str(df['description'])
+	return re.sub(url_regex, r'\3', string)
+
 # Add functions
 
 def add_dimension_2d(df):
@@ -106,6 +115,21 @@ def add_definition_sd(df):
 	else: # if hd or NaN
 		return 0
 
+
+
+def add_description_is_url(df):
+	url_regex = r'(https?:\/\/)?([a-zA-Z0-9]+\.)?([a-zA-Z0-9]+)\.[a-zA-Z0-9]+\/?([\"\'\=a-zA-Z0-9\/\?\_\-]+)?'
+	string = str(df['description'])
+	match = re.findall(url_regex, string)
+	if len(match) != 1 or len(match[0]) != 4:
+		return 0
+	else:
+		return 1
+
+
+
+# re.sub(url_regex, string, '\3')
+
 # Empty functions
 
 def empty_df(df, index, default):
@@ -113,6 +137,13 @@ def empty_df(df, index, default):
 		return default
 	else:
 		return df[index]
+
+
+def convertion_title_strip(df):
+	return unidecode(unicode(df['title'], 'utf-8'))
+
+def convertion_description_strip(df):
+	return unidecode(unicode(df['description'], 'utf-8'))	
 
 def features_transforming(df):
 	# convert
@@ -122,12 +153,18 @@ def features_transforming(df):
 	df['topicIds'] = df.apply(convert_topicIds, axis=1)
 	df['relevantTopicIds'] = df.apply(convert_relevantTopicIds, axis=1)
 	df['published_at'] = df.apply(convert_published_at, axis=1)
+	df['description'] = df.apply(convertion_description_url, axis=1)
+	df['title'] = df.apply(convertion_title_strip, axis=1)
+	df['description'] = df.apply(convertion_description_strip, axis=1)
+	df['title'] = df['title'].apply(lambda r: ' '.join([stemmer.stem(word) for word in r.split(" ")]) )
+	df['description'] = df['description'].apply(lambda r: ' '.join([stemmer.stem(word) for word in r.split(" ")]) )
 	print "features_transforming convert :", (time.time() - t0)
 	# add
 	df['dimension_2d'] = df.apply(add_dimension_2d, axis=1)
 	df['dimension_3d'] = df.apply(add_dimension_3d, axis=1)
 	df['definition_hd'] = df.apply(add_definition_hd, axis=1)
 	df['definition_sd'] = df.apply(add_definition_sd, axis=1)
+	df['description_is_url'] = df.apply(add_description_is_url, axis=1)
 	print "features_transforming add :", (time.time() - t0)
 	# empty
 	viewCount_default = df['viewCount'].median() # in case median() is exec each time
@@ -141,7 +178,7 @@ def features_transforming(df):
 	df['dislikeCount'] = df.apply(empty_df, axis=1, args=('dislikeCount',dislikeCount_default))
 	df['favoriteCount'] = df.apply(empty_df, axis=1, args=('favoriteCount',favoriteCount_default))
 	df['commentCount'] = df.apply(empty_df, axis=1, args=('commentCount',commentCount_default))
-	df['description'] = df.apply(empty_df, axis=1, args=('description',description_default))
+	#df['description'] = df.apply(empty_df, axis=1, args=('description',description_default))
 	print "features_transforming empty :", (time.time() - t0)
 
 
@@ -150,16 +187,46 @@ def features_transforming(df):
 ####################################################################################################################################
 
 
+# pre pre processing
+
+# def prepreprocessing(path2oldfile, path2newfile):
+# 	original_file= open(path2oldfile,'r')# r when we only wanna read file
+# 	revised_file = open(path2newfile,'w')# w when u wanna write sth on the file
+# 	virgule_regex = r'^(,)?'
+# 	quote_regex = r',".*(,).*",'
+# 	for aline in original_file:
+# 		n_aline = re.sub(virgule_regex, '', aline)
+# 		nn_aline = re.sub(quote_regex, '', n_aline)
+# 	original_file.close()
+# 	revised_file.close()
+
+def preprocessing(df):
+	df = df.fillna('')
+	df.drop(u'favoriteCount',1).columns
+	for col in l_digit_col:
+		df[col] =df[col].apply(lambda r: int(r) if str(r).isdigit() else -1 )
+	for col in l_digit_col:
+	    mean = df[col].median()
+	    df[col] = df[col].apply(lambda r: mean if r==-1 else r )
+	print "prepreprocessing :", (time.time() - t0)
+	return df
+
+stemmer = PorterStemmer()
 
 folder = os.getcwd() ; print folder
 
 t0 = time.time()
 
+l_digit_col = [u'viewCount',u'likeCount', u'dislikeCount', u'commentCount']
+
 ####################################################################################################################################
 # train_sample.csv
 
-train_df = pd.read_csv('./data/train_sample.csv', header=0, escapechar='\\', quotechar='"')
+train_df = pd.read_csv('./data/train_sample.csv',sep=",", header=0, escapechar='\\',
+                       quotechar='"', error_bad_lines=False, encoding=None )
 print "Reading train_sample.csv :", (time.time() - t0)
+
+train_df = preprocessing(train_df)
 
 features_transforming(train_df)
 print "features_transforming(train_df) :", (time.time() - t0)
@@ -169,8 +236,10 @@ train_df.to_csv('./data/train_sample_munged.csv', sep=',', index=None)
 ####################################################################################################################################
 # test_sample.csv
 
-test_df = pd.read_csv('./data/test_sample.csv', header=0, escapechar='\\', quotechar='"')
+test_df = pd.read_csv('./data/test_sample.csv', sep=",", header=0, escapechar='\\', quotechar='"', error_bad_lines=False)
 print "Reading test_sample.csv :", (time.time() - t0)
+
+test_df = preprocessing(test_df)
 
 features_transforming(test_df)
 print "features_transforming(test_df) :", (time.time() - t0)
