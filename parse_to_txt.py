@@ -9,7 +9,7 @@ desc = train_df["description"].tolist()
 
 
 with open("data/train_only_text_simple","w",encoding="utf-8") as f:
-    f.write("sentence;category")
+    f.write("sentence;category\n")
     for c,t,d in zip(cat,titles,desc):
         f.write("\"{}\";{}\n".format(str(t)+str(d),c))
 
@@ -20,7 +20,7 @@ desc = test_df["description"].tolist()
 
 
 with open("data/test_only_text_simple","w",encoding="utf-8") as f:
-    f.write("id;sentence")
+    f.write("id;sentence\n")
     for c,t,d in zip(id,titles,desc):
         f.write("{};{}\n".format(c,str(t)+str(d)))
 
