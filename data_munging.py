@@ -25,7 +25,7 @@ def duration2sec(duration):
 	duration_regex = "P(([0-9]+)D)?T(([0-9]+)H)?(([0-9]+)M)?(([0-9]+)S)?"
 	match = re.findall(duration_regex, duration)
 	if len(match) != 1 or len(match[0]) != 8:
-		print "Error: {}", duration
+		print "Error: ", duration
 		return -1.
 	match = match[0]
 	if match[1]: # day
@@ -106,6 +106,24 @@ def add_definition_sd(df):
 	else: # if hd or NaN
 		return 0
 
+
+
+def add_description_is_url(df):
+	url_regex = r'(https?:\/\/)?([a-zA-Z0-9]+\.)?([a-zA-Z0-9]+)\.[a-zA-Z0-9]+\/?([\"\'\=a-zA-Z0-9\/\?\_\-]+)?'
+	string = str(df['description'])
+	match = re.findall(url_regex, string)
+	if len(match) != 1 or len(match[0]) != 4:
+		return 0
+	else:
+		return 1
+
+def add_description_url(df):
+	url_regex = r'(https?:\/\/)?([a-zA-Z0-9]+\.)?([a-zA-Z0-9]+)\.[a-zA-Z0-9]+\/?([\"\'\=a-zA-Z0-9\/\?\_\-]+)?'
+	string = str(df['description'])
+	return re.sub(url_regex, r'\3', string)
+
+# re.sub(url_regex, string, '\3')
+
 # Empty functions
 
 def empty_df(df, index, default):
@@ -113,6 +131,8 @@ def empty_df(df, index, default):
 		return default
 	else:
 		return df[index]
+
+
 
 def features_transforming(df):
 	# convert
@@ -128,6 +148,8 @@ def features_transforming(df):
 	df['dimension_3d'] = df.apply(add_dimension_3d, axis=1)
 	df['definition_hd'] = df.apply(add_definition_hd, axis=1)
 	df['definition_sd'] = df.apply(add_definition_sd, axis=1)
+	df['description_is_url'] = df.apply(add_description_is_url, axis=1)
+	df['description_url'] = df.apply(add_description_url, axis=1)
 	print "features_transforming add :", (time.time() - t0)
 	# empty
 	viewCount_default = df['viewCount'].median() # in case median() is exec each time
@@ -141,7 +163,7 @@ def features_transforming(df):
 	df['dislikeCount'] = df.apply(empty_df, axis=1, args=('dislikeCount',dislikeCount_default))
 	df['favoriteCount'] = df.apply(empty_df, axis=1, args=('favoriteCount',favoriteCount_default))
 	df['commentCount'] = df.apply(empty_df, axis=1, args=('commentCount',commentCount_default))
-	df['description'] = df.apply(empty_df, axis=1, args=('description',description_default))
+	#df['description'] = df.apply(empty_df, axis=1, args=('description',description_default))
 	print "features_transforming empty :", (time.time() - t0)
 
 
