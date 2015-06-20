@@ -158,7 +158,7 @@ t0 = time.time()
 ####################################################################################################################################
 # train_sample.csv
 
-train_df = pd.read_csv('./data/train_sample.csv', header=0, escapechar='\\', quotechar='"')
+train_df = pd.read_csv('./data/train_sample.csv',sep=",", header=0, escapechar='\\', quotechar='"', error_bad_lines=False)
 print "Reading train_sample.csv :", (time.time() - t0)
 
 features_transforming(train_df)
@@ -169,7 +169,7 @@ train_df.to_csv('./data/train_sample_munged.csv', sep=',', index=None)
 ####################################################################################################################################
 # test_sample.csv
 
-test_df = pd.read_csv('./data/test_sample.csv', header=0, escapechar='\\', quotechar='"')
+test_df = pd.read_csv('./data/test_sample.csv', sep=",", header=0, escapechar='\\', quotechar='"', error_bad_lines=False)
 print "Reading test_sample.csv :", (time.time() - t0)
 
 features_transforming(test_df)
