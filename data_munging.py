@@ -3,6 +3,7 @@
 import pandas as pd
 import numpy as np
 import re
+import time
 import os
 import datetime
 from dateutil import parser
@@ -146,16 +147,23 @@ def features_transforming(df):
 
 folder = os.getcwd() ; print folder
 
+t0 = time.time()
+
 train_df = pd.read_csv('./data/train_sample.csv', header=0, escapechar='\\', quotechar='"')
+print "Reading train_sample.csv : {}", (time.time() - t0)
 test_df = pd.read_csv('./data/test_sample.csv', header=0, escapechar='\\', quotechar='"')
+print "Reading test_sample.csv : {}", (time.time() - t0)
 
 duration_regex = "P(([0-9]+)D)?T(([0-9]+)H)?(([0-9]+)M)?(([0-9]+)S)?"
 
 features_transforming(train_df)
+print "features_transforming(train_df) : {}", (time.time() - t0)
 features_transforming(test_df)
+print "features_transforming(test_df) : {}", (time.time() - t0)
 
 train_df.to_csv('./data_munging/train_sample.csv', sep=',', index=None)
 test_df.to_csv('./data_munging/test_sample.csv', sep=',', index=None)
+
 
 
 
