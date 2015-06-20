@@ -160,7 +160,7 @@ print "Reading train_sample.csv : {}", (time.time() - t0)
 features_transforming(train_df)
 print "features_transforming(train_df) : {}", (time.time() - t0)
 
-train_df.to_csv('./data_munging/train_sample.csv', sep=',', index=None)
+train_df.to_csv('./data/train_sample_munged.csv', sep=',', index=None)
 
 # test_sample.csv
 
@@ -170,7 +170,7 @@ print "Reading test_sample.csv : {}", (time.time() - t0)
 features_transforming(test_df)
 print "features_transforming(test_df) : {}", (time.time() - t0)
 
-test_df.to_csv('./data_munging/test_sample.csv', sep=',', index=None)
+test_df.to_csv('./data/test_sample_munged.csv', sep=',', index=None)
 
 
 
