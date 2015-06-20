@@ -62,16 +62,16 @@ def convert_licensedContent(df):
 def convert_topicIds(df):
     #create list of topicIds from raw string
     if type(df['topicIds']) == str:
-    	return df['topicIds'].split(";")
+    	return ' '.join(df['topicIds'].split(';'))
     else:
-    	return []
+    	return ''
 
 def convert_relevantTopicIds(df):
     #create list of relevantTopicIds from raw strings
     if type(df['relevantTopicIds']) == str:
-    	return df['relevantTopicIds'].split(";")
+    	return ' '.join(df['relevantTopicIds'].split(';'))
     else:
-    	return []
+    	return ''
 
 def convert_published_at(df):
     #parse the sate into datetime format 
@@ -122,11 +122,13 @@ def features_transforming(df):
 	df['topicIds'] = df.apply(convert_topicIds, axis=1)
 	df['relevantTopicIds'] = df.apply(convert_relevantTopicIds, axis=1)
 	df['published_at'] = df.apply(convert_published_at, axis=1)
+	print "features_transforming convert :", (time.time() - t0)
 	# add
 	df['dimension_2d'] = df.apply(add_dimension_2d, axis=1)
 	df['dimension_3d'] = df.apply(add_dimension_3d, axis=1)
 	df['definition_hd'] = df.apply(add_definition_hd, axis=1)
 	df['definition_sd'] = df.apply(add_definition_sd, axis=1)
+	print "features_transforming add :", (time.time() - t0)
 	# empty
 	viewCount_default = df['viewCount'].median() # in case median() is exec each time
 	likeCount_default = df['likeCount'].median()
@@ -140,6 +142,7 @@ def features_transforming(df):
 	df['favoriteCount'] = df.apply(empty_df, axis=1, args=('favoriteCount',favoriteCount_default))
 	df['commentCount'] = df.apply(empty_df, axis=1, args=('commentCount',commentCount_default))
 	df['description'] = df.apply(empty_df, axis=1, args=('description',description_default))
+	print "features_transforming empty :", (time.time() - t0)
 
 
 ####################################################################################################################################
@@ -152,23 +155,25 @@ folder = os.getcwd() ; print folder
 
 t0 = time.time()
 
+####################################################################################################################################
 # train_sample.csv
 
 train_df = pd.read_csv('./data/train_sample.csv', header=0, escapechar='\\', quotechar='"')
-print "Reading train_sample.csv : {}", (time.time() - t0)
+print "Reading train_sample.csv :", (time.time() - t0)
 
 features_transforming(train_df)
-print "features_transforming(train_df) : {}", (time.time() - t0)
+print "features_transforming(train_df) :", (time.time() - t0)
 
 train_df.to_csv('./data/train_sample_munged.csv', sep=',', index=None)
 
+####################################################################################################################################
 # test_sample.csv
 
 test_df = pd.read_csv('./data/test_sample.csv', header=0, escapechar='\\', quotechar='"')
-print "Reading test_sample.csv : {}", (time.time() - t0)
+print "Reading test_sample.csv :", (time.time() - t0)
 
 features_transforming(test_df)
-print "features_transforming(test_df) : {}", (time.time() - t0)
+print "features_transforming(test_df) :", (time.time() - t0)
 
 test_df.to_csv('./data/test_sample_munged.csv', sep=',', index=None)
 
