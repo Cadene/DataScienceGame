@@ -12,7 +12,10 @@ import numpy as np
 from sklearn.linear_model import SGDClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import SGDClassifier
+from sklearn.tree import  DecisionTreeClassifier
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.neighbors import KNeighborsClassifier
 
 class ColumnSelector(BaseEstimator, TransformerMixin):
     def __init__(self, key):
@@ -99,7 +102,7 @@ class TitleDescPredictor(Predictor):
 
     def predict(self,test_set):
         test_set = self.preprocess(test_set,False)
-        self.clf.predict(test_set)
+        return self.clf.predict(test_set)
 
 
 class TitlePredictor(Predictor):
@@ -146,7 +149,7 @@ class TitlePredictor(Predictor):
 
     def predict(self,test_set):
         test_set = self.preprocess(test_set,False)
-        self.clf.predict(test_set)
+        return self.clf.predict(test_set)
 
 
 class DescPredictor(Predictor):
@@ -199,7 +202,68 @@ class DescPredictor(Predictor):
 
     def predict(self,test_set):
         test_set = self.preprocess(test_set,False)
-        self.clf.predict(test_set)
+        return self.clf.predict(test_set)
+
+
+
+class TopicsPredictor(Predictor):
+
+    def __init__(self):
+        Predictor.__init__(self)
+
+    def preprocess(self,any_set,is_train):
+
+        if is_train:
+            dico_pattern={'match_lowercase_only':'\\b[a-z]+\\b',
+              'match_word':'\\w{1,}',
+              'match_word1': '(?u)\\b\\w+\\b',
+              'match_word_punct': '\w+|[,.?!;]',
+              'match_NNP': '\\b[A-Z][a-z]+\\b|\\b[A-Z]+\\b',
+              'match_punct': "[,.?!;'-]"
+             }
+
+            tfv_topicid = TfidfVectorizer(lowercase=True, stop_words=None, token_pattern=dico_pattern["match_word1"],
+                                  ngram_range=(1, 1), max_df=1.0, min_df=2, max_features=None,
+                                  vocabulary=None, binary=True, norm=u'l2',
+                                  use_idf=True, smooth_idf=True, sublinear_tf=True)
+
+            # tfv_rel_topic = TfidfVectorizer(lowercase=True, stop_words=None, token_pattern=dico_pattern["match_word1"],
+            #                       ngram_range=(1, 1), max_df=1.0, min_df=2, max_features=None,
+            #                       vocabulary=None, binary=True, norm=u'l2',
+            #                       use_idf=True, smooth_idf=True, sublinear_tf=True)
+
+            clf = MultinomialNB(alpha=0.05, fit_prior=True, class_prior=None)
+
+
+            topicId_pipe = make_pipeline(ColumnSelector(key=u'topicIds'), tfv_topicid)
+            # reltopicID_pipe = make_pipeline(ColumnSelector(key=u'relevantTopicIds'), tfv_rel_topic)
+
+            self.pipeline = topicId_pipe #make_union(topicId_pipe, reltopicID_pipe)
+
+
+            return self.pipeline.fit_transform(any_set)
+        else:
+            return  self.pipeline.transform(any_set)
+
+    def train(self,train_set,labels):
+        train_set = self.preprocess(train_set,True)
+        self.clf.fit(train_set,labels)
+
+    def train_test(self,clf,train_set,labels):
+        train_set = self.preprocess(train_set,True)
+        print("Size test {}".format(train_set.shape))
+        self.clf = clf
+        skf = KFold(n=len(labels), n_folds=10, shuffle=True,random_state=None)
+        scores_skf = cross_val_score(self.clf, train_set, labels,scoring='accuracy',cv=skf, n_jobs=-1)
+        print("Cross val: {}, mean {}, std {}".format(scores_skf, scores_skf.mean(), scores_skf.std()))
+        return  scores_skf.mean()
+
+    def predict(self,test_set):
+        test_set = self.preprocess(test_set,False)
+        return self.clf.predict(test_set)
+
+
+
 
 
 
@@ -216,10 +280,9 @@ if __name__ == "__main__":
     X = pd_train
     Y = pd_train[u'video_category_id'].values
 
-    # pred = TitleDescPredictor()
-    # score_ks = pred.train_test(MultinomialNB(alpha=0.1),X,Y) # Tester les paramètres avec ça
-    # pred.train(X,Y)  # FINAL TRAIN
-    # pred.save("models/Title_Desc_NB")  # Model SAVE
+
+
+
     #
     # pred = TitlePredictor()
     # score_ks = pred.train_test(MultinomialNB(alpha=0.1),X,Y) # Tester les paramètres avec ça
@@ -230,13 +293,24 @@ if __name__ == "__main__":
     # score_ks = pred.train_test(MultinomialNB(alpha=0.1),X,Y) # Tester les paramètres avec ça
     # pred.train(X,Y)  # FINAL TRAIN
     # pred.save("models/0.76_Desc_NB_01")  # Model SAVE
+    #
+    # pred = TopicsPredictor()
+    # score_ks = pred.train_test(MultinomialNB(alpha=0.1),X,Y) # Tester les paramètres avec ça
+    # pred.train(X,Y)  # FINAL TRAIN
+    # pred.save("models/0.76_Topic_NB_01")  # Model SAVE
+    #
+    pred = TopicsPredictor()
+    score_ks = pred.train_test(KNeighborsClassifier(n_neighbors=2),X,Y) # Tester les paramètres avec ça
+    pred.train(X,Y)  # FINAL TRAIN
+    pred.save("models/0.76_Topic_RF_01")  # Model SAVE
+
+    #
+    # pred = TitlePredictor()
+    # for l in ["hinge","log"]:
+    #     for p in ["l1","l2","elasticnet"]:
+    #         score_ks = pred.train_test(SGDClassifier(loss=l, penalty=p, alpha=0.0001,n_jobs=-1),X,Y)
 
 
-    pred = TitlePredictor()
-    score_ks = pred.train_test(RandomForestClassifier(n_estimators=10, criterion='gini'),X,Y)
-    score_ks = pred.train_test(RandomForestClassifier(n_estimators=5, criterion='gini'),X,Y)
-    score_ks = pred.train_test(RandomForestClassifier(n_estimators=20, criterion='gini'),X,Y)
-    score_ks = pred.train_test(RandomForestClassifier(n_estimators=25, criterion='gini'),X,Y)# Tester les paramètres avec ça
     #pred.train(X,Y)  # FINAL TRAIN
     #pred.save("models/0.76_Title_NB_01")  # Model SAVE
 
