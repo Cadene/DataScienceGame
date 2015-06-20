@@ -22,7 +22,7 @@ desc = test_df["description"].tolist()
 with open("data/test_only_text_simple","w",encoding="utf-8") as f:
     f.write("id;sentence")
     for c,t,d in zip(id,titles,desc):
-        f.write("{},{}\n".format(c,str(t)+str(d)))
+        f.write("{};{}\n".format(c,str(t)+str(d)))
 
 
 
