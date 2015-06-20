@@ -2,8 +2,10 @@
 
 import pandas as pd
 import numpy as np
-import csv as csv
 import re
+import os
+import datetime
+from dateutil import parser
 
 ####################################################################################################################################
 # Functions
@@ -38,6 +40,8 @@ def duration2sec(duration):
 		sec += seco
 	return sec
 
+# Convert functions
+
 def convert_duration(df):
 	return duration2sec(df['duration'])
 
@@ -52,6 +56,29 @@ def convert_licensedContent(df):
 		return 0
 	else:
 		return 1 # column = True or NaN
+
+def convert_topicIds(df):
+    #create list of topicIds from raw string
+    if type(df['topicIds']) == str:
+    	return df['topicIds'].split(";")
+    else:
+    	return []
+
+def convert_relevantTopicIds(df):
+    #create list of relevantTopicIds from raw strings
+    if type(df['relevantTopicIds']) == str:
+    	return df['relevantTopicIds'].split(";")
+    else:
+    	return []
+
+def convert_published_at(df):
+    #parse the sate into datetime format 
+    if len(df['published_at']) == 24:
+    	return parser.parse(df['published_at'][:19])
+    else:
+    	return datetime.datetime.now()
+
+# Add functions
 
 def add_dimension_2d(df):
 	if df['dimension'] == '2d' or isNaN(df['dimension']):
@@ -77,20 +104,47 @@ def add_definition_sd(df):
 	else: # if hd or NaN
 		return 0
 
+# Empty functions
+
+def empty_df(df, index, default):
+	if isNaN(df[index]):
+		return default
+	else:
+		return df[index]
 
 def features_transforming(df):
+	# convert
 	df['duration'] = df.apply(convert_duration, axis=1)
 	df['caption'] = df.apply(convert_caption, axis=1)
 	df['licensedContent'] = df.apply(convert_licensedContent, axis=1)
+	df['topicIds'] = df.apply(convert_TopicIds, axis=1)
+	df['relevantTopicIds'] = df.apply(convert_relevantTopicIds, axis=1)
+	df['published_at'] = df.apply(convert_published_at, axis=1)
+	# add
 	df['dimension_2d'] = df.apply(add_dimension_2d, axis=1)
 	df['dimension_3d'] = df.apply(add_dimension_3d, axis=1)
 	df['definition_hd'] = df.apply(add_definition_hd, axis=1)
 	df['definition_sd'] = df.apply(add_definition_sd, axis=1)
+	# empty
+	viewCount_default = df['viewCount'].median() # in case median() is exec each time
+	likeCount_default = df['likeCount'].median()
+	dislikeCount_default = df['dislikeCount'].median()
+	favoriteCount_default = df['favoriteCount'].median()
+	commentCount_default = df['commentCount'].median()
+	description_default = ""
+	df['viewCount'] = df.apply(empty_df, axis=1, args=('viewCount',viewCount_default))
+	df['likeCount'] = df.apply(empty_df, axis=1, args=('likeCount',likeCount_default))
+	df['dislikeCount'] = df.apply(empty_df, axis=1, args=('dislikeCount',dislikeCount_default))
+	df['favoriteCount'] = df.apply(empty_df, axis=1, args=('favoriteCount',favoriteCount_default))
+	df['commentCount'] = df.apply(empty_df, axis=1, args=('commentCount',commentCount_default))
+	df['description'] = df.apply(empty_df, axis=1, args=('description',description_default))
 
 
 ####################################################################################################################################
 # Main
 ####################################################################################################################################
+
+folder = os.getcwd() ; print folder
 
 train_df = pd.read_csv('./data/train_sample.csv', header=0, escapechar='\\', quotechar='"')
 test_df = pd.read_csv('./data/test_sample.csv', header=0, escapechar='\\', quotechar='"')
