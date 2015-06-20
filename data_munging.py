@@ -161,6 +161,8 @@ t0 = time.time()
 train_df = pd.read_csv('./data/train_sample.csv',sep=",", header=0, escapechar='\\', quotechar='"', error_bad_lines=False)
 print "Reading train_sample.csv :", (time.time() - t0)
 
+
+
 features_transforming(train_df)
 print "features_transforming(train_df) :", (time.time() - t0)
 
