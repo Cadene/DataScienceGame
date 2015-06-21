@@ -69,12 +69,12 @@ u'y', 'the', 'to', 'a', 'of', 'in', 'floor','for', 'is', 'you','video' , 'this',
 # TF-IDF 2 colomn
 
 tfv_word = TfidfVectorizer(lowercase=True, stop_words=stopwords, token_pattern=dico_pattern["match_word1"], 
-                      ngram_range=(1, 2), max_df=1.0, min_df=2, max_features=None, 
+                      ngram_range=(1, 2), max_df=0.5, min_df=2, max_features=None, 
                       vocabulary=None, binary=True, norm=u'l2', 
                       use_idf=True, smooth_idf=True, sublinear_tf=True)
 
 tfv_topic = TfidfVectorizer(lowercase=True, stop_words=None, token_pattern=dico_pattern["match_word1"], 
-                      ngram_range=(1, 1), max_df=1.0, min_df=2, max_features=None, 
+                      ngram_range=(1, 1), max_df=0.5, min_df=2, max_features=None, 
                       vocabulary=None, binary=True, norm=u'l2', 
                       use_idf=True, smooth_idf=True, sublinear_tf=True)
 
@@ -85,12 +85,16 @@ pipeline = make_union(word_pipe, topic_pipe)
 
 #pipeline.transformer_weights[[2,1]]
 
-#X = hstack((pipeline.fit_transform(df_train),df_train[['viewCount', 'likeCount', 'dislikeCount','commentCount']])) #, 'duration', 'caption', 'licensedContent', 'dimension_2d', 'dimension_3d', 'definition_hd', 'definition_sd' ]]))
-#X_test = hstack((pipeline.transform(df_test),df_test[['viewCount', 'likeCount', 'dislikeCount','commentCount']])) #, 'duration', 'caption', 'licensedContent', 'dimension_2d', 'dimension_3d', 'definition_hd', 'definition_sd'  ]]))
+df_train['duration'] = df_train['duration'].apply(lambda r: float(r))
+
+X = hstack((pipeline.fit_transform(df_train),df_train[['viewCount', 'likeCount', 'dislikeCount','commentCount', 'duration','caption', 'dimension_2d', 'definition_hd']]))
+X = X.tocsr()
+X_test = hstack((pipeline.transform(df_test),df_test[['viewCount', 'likeCount', 'dislikeCount','commentCount', 'duration', 'caption', 'dimension_2d', 'dimension_3d', 'definition_hd', 'definition_sd'  ]]))
+X_test = X_test.tocsr()
 Y = df_train['video_category_id'].values
 
-X = pipeline.fit_transform(df_train)
-X_test = pipeline.transform(df_test)
+#X = pipeline.fit_transform(df_train)
+#X_test = pipeline.transform(df_test)
 # print X.shape
 
 # TRAINING
@@ -169,6 +173,12 @@ submit_blend.to_csv('./results/final_blend.csv',sep=';',index=None)
 
 
 
+def to_number(s):
+  try:
+      s1 = float(s)
+      return s1
+  except ValueError:
+      return s
 
 
 
