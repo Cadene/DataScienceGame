@@ -91,7 +91,7 @@ Features = ['viewCount','likeCount','dislikeCount', 'commentCount', 'duration', 
 newFeatures = Features + ['topicIds']
 
 train , val = sf_train.random_split(0.8)
-gbt = gl.boosted_trees_classifier.create(train, "video_category_id", features=['uni'], 
+gbt = gl.boosted_trees_classifier.create(train, "video_category_id", features=['uni','bi'], 
 	max_iterations=10, validation_set=val, verbose=True, max_depth=None,
 	class_weights=None)
 
@@ -99,8 +99,14 @@ gbt = gl.boosted_trees_classifier.create(train, "video_category_id", features=['
 y_pred = gbt.predict(sf_test)
 
 
+submit = pd.DataFrame()
+submit['id']=sf_test['id']
 
 
+
+
+
+submit.save("./results/AM_uni.csv")
 
 y_pred.save('./results/AM_uni_bi.csv')
 
