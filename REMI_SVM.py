@@ -87,9 +87,9 @@ pipeline = make_union(word_pipe, topic_pipe)
 
 df_train['duration'] = df_train['duration'].apply(lambda r: float(r))
 
-X = hstack((pipeline.fit_transform(df_train),df_train[['viewCount', 'likeCount', 'dislikeCount','commentCount', 'duration','caption', 'dimension_2d', 'definition_hd']]))
+X = hstack((pipeline.fit_transform(df_train),df_train[['viewCount', 'likeCount', 'dislikeCount','commentCount', 'dimension_2d', 'definition_hd']]))
 X = X.tocsr()
-X_test = hstack((pipeline.transform(df_test),df_test[['viewCount', 'likeCount', 'dislikeCount','commentCount', 'duration', 'caption', 'dimension_2d', 'dimension_3d', 'definition_hd', 'definition_sd'  ]]))
+X_test = hstack((pipeline.transform(df_test),df_test[['viewCount', 'likeCount', 'dislikeCount','commentCount', 'dimension_2d', 'dimension_3d', 'definition_hd', 'definition_sd'  ]]))
 X_test = X_test.tocsr()
 Y = df_train['video_category_id'].values
 
