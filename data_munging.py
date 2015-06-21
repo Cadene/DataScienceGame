@@ -74,11 +74,7 @@ def convert_relevantTopicIds(df):
     	return ''
 
 def convert_published_at(df):
-    #parse the sate into datetime format 
-    if len(df['published_at']) == 24:
-    	return parser.parse(df['published_at'][:19])
-    else:
-    	return datetime.datetime.now()
+	return parser.parse(df['published_at'][:19])
 
 # Add functions
 
@@ -152,13 +148,13 @@ def features_transforming(df):
 
 
 folder = os.getcwd() ; print folder
-
 t0 = time.time()
 
 ####################################################################################################################################
 # train_sample.csv
 
 train_df = pd.read_csv('./data/train_sample.csv',sep=",", header=0, escapechar='\\', quotechar='"', error_bad_lines=False)
+train_df = train_df[train_df[u'published_at'].apply(lambda r: len(r))==24]
 print "Reading train_sample.csv :", (time.time() - t0)
 
 
@@ -168,10 +164,12 @@ print "features_transforming(train_df) :", (time.time() - t0)
 
 train_df.to_csv('./data/train_sample_munged.csv', sep=',', index=None)
 
+
 ####################################################################################################################################
 # test_sample.csv
 
 test_df = pd.read_csv('./data/test_sample.csv', sep=",", header=0, escapechar='\\', quotechar='"', error_bad_lines=False)
+test_df = test_df[test_df[u'published_at'].apply(lambda r: len(r))==24]
 print "Reading test_sample.csv :", (time.time() - t0)
 
 features_transforming(test_df)
