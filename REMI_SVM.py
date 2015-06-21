@@ -94,6 +94,8 @@ X_test = hstack((pipeline.transform(df_test),df_test[['viewCount', 'likeCount', 
 X_test = X_test.tocsr()
 Y = df_train['video_category_id'].values
 
+print "Hstack fini"
+
 #X = pipeline.fit_transform(df_train)
 #X_test = pipeline.transform(df_test)
 # print X.shape
@@ -127,16 +129,19 @@ for train_idx, val_idx in sss:
     svm_predict_proba = getProbaSVM(clf_svm.decision_function(x_val))
     score_svm = accuracy_score(clf_svm.predict(x_val), y_val)
     l_svm_score.append(score_svm)
+    print "l_svm_score"
     #
     clf_nb.fit(x_train, y_train)
     nb_predict_proba = clf_nb.predict_proba(x_val)
     score_nb = accuracy_score(clf_nb.predict(x_val), y_val)
     l_nb_score.append(score_nb)
+    print "l_nb_score"
     #
     blend_mat = alpha*nb_predict_proba + beta*svm_predict_proba
     y_pred_blend = clf_svm.classes_[np.argmax(blend_mat,1)]
     score_blend = accuracy_score(y_pred_blend, y_val)
     l_blend_score.append(score_blend)
+    print "l_blend_score"
     #
     print score_svm, score_nb, score_blend
     
