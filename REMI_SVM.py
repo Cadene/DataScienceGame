@@ -85,7 +85,6 @@ pipeline = make_union(word_pipe, topic_pipe)
 
 #pipeline.transformer_weights[[2,1]]
 
-df_train['duration'] = df_train['duration'].apply(lambda r: float(r))
 
 X = hstack((pipeline.fit_transform(df_train),df_train[['viewCount', 'likeCount', 'dislikeCount','commentCount', 'dimension_2d', 'definition_hd']]))
 X = X.tocsr()
