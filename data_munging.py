@@ -87,7 +87,7 @@ def convert_published_at(df):
 def convertion_description_url(df):
 	url_regex = r'(https?:\/\/)?([a-zA-Z0-9]+\.)?([a-zA-Z0-9]+)\.[a-zA-Z0-9]+\/?([\"\'\=a-zA-Z0-9\/\?\_\-]+)?'
 	string = str(df['description'])
-	return re.sub(url_regex, r'\3', string)
+	return re.sub(url_regex, r'xxxURLxxx \3', string)
 
 # Add functions
 
@@ -115,17 +115,17 @@ def add_definition_sd(df):
 	else: # if hd or NaN
 		return 0
 
+# def add_description_is_url(df):
+# 	url_regex = r'(https?:\/\/)?([a-zA-Z0-9]+\.)?([a-zA-Z0-9]+)\.[a-zA-Z0-9]+\/?([\"\'\=a-zA-Z0-9\/\?\_\-]+)?'
+# 	string = str(df['description'])
+# 	match = re.findall(url_regex, string)
+# 	if len(match) != 1 or len(match[0]) != 4:
+# 		return 0
+# 	else:
+# 		return 1
 
-
-def add_description_is_url(df):
-	url_regex = r'(https?:\/\/)?([a-zA-Z0-9]+\.)?([a-zA-Z0-9]+)\.[a-zA-Z0-9]+\/?([\"\'\=a-zA-Z0-9\/\?\_\-]+)?'
-	string = str(df['description'])
-	match = re.findall(url_regex, string)
-	if len(match) != 1 or len(match[0]) != 4:
-		return 0
-	else:
-		return 1
-
+def add_fame(df):
+	return  df['viewCount'] / df['anciennete']
 
 
 # re.sub(url_regex, string, '\3')
@@ -146,6 +146,12 @@ def convertion_description_strip(df):
 	return unidecode(unicode(df['description'], 'utf-8'))	
 
 def features_transforming(df):
+	# add
+	df['dimension_2d'] = df.apply(add_dimension_2d, axis=1)
+	df['dimension_3d'] = df.apply(add_dimension_3d, axis=1)
+	df['definition_hd'] = df.apply(add_definition_hd, axis=1)
+	df['definition_sd'] = df.apply(add_definition_sd, axis=1)
+	print "features_transforming add :", (time.time() - t0)
 	# convert
 	df['duration'] = df.apply(convert_duration, axis=1)
 	df['caption'] = df.apply(convert_caption, axis=1)
@@ -159,13 +165,6 @@ def features_transforming(df):
 	df['title'] = df['title'].apply(lambda r: ' '.join([stemmer.stem(word) for word in r.split(" ")]) )
 	df['description'] = df['description'].apply(lambda r: ' '.join([stemmer.stem(word) for word in r.split(" ")]) )
 	print "features_transforming convert :", (time.time() - t0)
-	# add
-	df['dimension_2d'] = df.apply(add_dimension_2d, axis=1)
-	df['dimension_3d'] = df.apply(add_dimension_3d, axis=1)
-	df['definition_hd'] = df.apply(add_definition_hd, axis=1)
-	df['definition_sd'] = df.apply(add_definition_sd, axis=1)
-	df['description_is_url'] = df.apply(add_description_is_url, axis=1)
-	print "features_transforming add :", (time.time() - t0)
 	# empty
 	viewCount_default = df['viewCount'].median() # in case median() is exec each time
 	likeCount_default = df['likeCount'].median()
@@ -179,7 +178,17 @@ def features_transforming(df):
 	df['favoriteCount'] = df.apply(empty_df, axis=1, args=('favoriteCount',favoriteCount_default))
 	df['commentCount'] = df.apply(empty_df, axis=1, args=('commentCount',commentCount_default))
 	#df['description'] = df.apply(empty_df, axis=1, args=('description',description_default))
+	# datetime
+	df['calcul'] = df['published_at'].map(lambda x : str(x).split('-'))
+	df['calcul'].head()
+	df['anciennete'] = df['calcul'].map(lambda x :(datetime.now()-datetime(int(x[0]),int(x[1]),int(x[2][:2]))).days)
+	df['fame'] = df.apply(add_fame, axis=1)
 	print "features_transforming empty :", (time.time() - t0)
+
+
+
+
+#pd_train['popularite'] = pd_train['viewCount'].map(lambda x : x/pd_train['anciennete'])
 
 
 ####################################################################################################################################
@@ -222,8 +231,7 @@ l_digit_col = [u'viewCount',u'likeCount', u'dislikeCount', u'commentCount']
 ####################################################################################################################################
 # train_sample.csv
 
-train_df = pd.read_csv('./data/train_sample.csv',sep=",", header=0, escapechar='\\',
-                       quotechar='"', error_bad_lines=False, encoding=None )
+train_df = pd.read_csv('./data/train_sample.csv',sep=",", header=0, escapechar='\\', quotechar='"', error_bad_lines=False, encoding=None )
 print "Reading train_sample.csv :", (time.time() - t0)
 
 train_df = preprocessing(train_df)
@@ -236,7 +244,7 @@ train_df.to_csv('./data/train_sample_munged.csv', sep=',', index=None)
 ####################################################################################################################################
 # test_sample.csv
 
-test_df = pd.read_csv('./data/test_sample.csv', sep=",", header=0, escapechar='\\', quotechar='"', error_bad_lines=False)
+test_df = pd.read_csv('./data/test_sample.csv', sep=",", header=0, escapechar='\\', quotechar='"', error_bad_lines=False, encoding=None )
 print "Reading test_sample.csv :", (time.time() - t0)
 
 test_df = preprocessing(test_df)
