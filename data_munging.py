@@ -124,8 +124,8 @@ def add_definition_sd(df):
 # 	else:
 # 		return 1
 
-def add_fame(df):
-	return  df['viewCount'] / df['anciennete']
+# def add_fame(df):
+# 	return  df['viewCount'] / df['anciennete']
 
 
 # re.sub(url_regex, string, '\3')
@@ -177,12 +177,11 @@ def features_transforming(df):
 	df['dislikeCount'] = df.apply(empty_df, axis=1, args=('dislikeCount',dislikeCount_default))
 	df['favoriteCount'] = df.apply(empty_df, axis=1, args=('favoriteCount',favoriteCount_default))
 	df['commentCount'] = df.apply(empty_df, axis=1, args=('commentCount',commentCount_default))
-	#df['description'] = df.apply(empty_df, axis=1, args=('description',description_default))
 	# datetime
-	df['calcul'] = df['published_at'].map(lambda x : str(x).split('-'))
-	df['calcul'].head()
-	df['anciennete'] = df['calcul'].map(lambda x :(datetime.now()-datetime(int(x[0]),int(x[1]),int(x[2][:2]))).days)
-	df['fame'] = df.apply(add_fame, axis=1)
+	# df['calcul'] = df['published_at'].map(lambda x : str(x).split('-'))
+	# df['calcul'].head()
+	# df['anciennete'] = df['calcul'].map(lambda x :(datetime.now()-datetime(int(x[0]),int(x[1]),int(x[2][:2]))).days)
+	# df['fame'] = df.apply(add_fame, axis=1)
 	print "features_transforming empty :", (time.time() - t0)
 
 
