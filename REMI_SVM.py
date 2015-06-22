@@ -87,17 +87,18 @@ pipeline = make_union(word_pipe, topic_pipe)
 
 
 #X = hstack((pipeline.fit_transform(df_train),df_train[['viewCount', 'likeCount', 'dislikeCount','commentCount', 'dimension_2d', 'definition_hd']]))
-X = hstack((pipeline.fit_transform(df_train),df_train[['viewCount', 'likeCount', 'dislikeCount','commentCount']]))
-X = X.tocsr()
-#X_test = hstack((pipeline.transform(df_test),df_test[['viewCount', 'likeCount', 'dislikeCount','commentCount', 'dimension_2d', 'definition_hd' ]]))
-X_test = hstack((pipeline.transform(df_test),df_test[['viewCount', 'likeCount', 'dislikeCount','commentCount' ]]))
-X_test = X_test.tocsr()
+# X = hstack((pipeline.fit_transform(df_train),df_train[['viewCount', 'likeCount', 'dislikeCount','commentCount']]))
+# X = X.tocsr()
+# #X_test = hstack((pipeline.transform(df_test),df_test[['viewCount', 'likeCount', 'dislikeCount','commentCount', 'dimension_2d', 'definition_hd' ]]))
+# X_test = hstack((pipeline.transform(df_test),df_test[['viewCount', 'likeCount', 'dislikeCount','commentCount' ]]))
+# X_test = X_test.tocsr()
 Y = df_train['video_category_id'].values
 
 print "Hstack fini"
 
-#X = pipeline.fit_transform(df_train)
-#X_test = pipeline.transform(df_test)
+X = pipeline.fit_transform(df_train)
+
+X_test = pipeline.transform(df_test)
 # print X.shape
 
 # TRAINING
@@ -176,16 +177,6 @@ submit_blend = pd.DataFrame(index=None)
 submit_blend['id'] = df_test['id']
 submit_blend['Pred'] = y_pred_blend
 submit_blend.to_csv('./results/final_blend.csv',sep=';',index=None)
-
-
-
-def to_number(s):
-  try:
-      s1 = float(s)
-      return s1
-  except ValueError:
-      return s
-
 
 
 

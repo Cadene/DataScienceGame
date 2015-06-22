@@ -230,15 +230,15 @@ l_digit_col = [u'viewCount',u'likeCount', u'dislikeCount', u'commentCount']
 ####################################################################################################################################
 # train_sample.csv
 
-train_df = pd.read_csv('./data/train_sample.csv',sep=",", header=0, escapechar='\\', quotechar='"', error_bad_lines=False, encoding=None )
-print "Reading train_sample.csv :", (time.time() - t0)
+# train_df = pd.read_csv('./data/train_sample.csv',sep=",", header=0, escapechar='\\', quotechar='"', error_bad_lines=False, encoding=None )
+# print "Reading train_sample.csv :", (time.time() - t0)
 
-train_df = preprocessing(train_df)
+# train_df = preprocessing(train_df)
 
-features_transforming(train_df)
-print "features_transforming(train_df) :", (time.time() - t0)
+# features_transforming(train_df)
+# print "features_transforming(train_df) :", (time.time() - t0)
 
-train_df.to_csv('./data/train_sample_munged.csv', sep=',', index=None)
+# train_df.to_csv('./data/train_sample_munged.csv', sep=',', index=None)
 
 ####################################################################################################################################
 # test_sample.csv
